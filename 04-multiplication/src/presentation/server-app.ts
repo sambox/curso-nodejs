@@ -21,7 +21,7 @@ export class ServerApp {
       destination,
     });
 
-    (wasSaved) ? console.log('file created') : console.log('file not created');
+    (wasSaved) ? console.log('file created') : console.error('file not created');
 
     if (show === true) {
       console.log(table);

@@ -6,6 +6,7 @@ describe('SaveFileUseCase', () => {
   beforeEach(() => {
     // clean up
     fs.rmSync('outputs', { recursive: true, force: true });
+    jest.clearAllMocks(); // este funciona solo para funciones meckeadas
   });
 
   afterEach(() => {
@@ -48,6 +49,38 @@ describe('SaveFileUseCase', () => {
     expect(fs.existsSync(path)).toBeTruthy();
     expect(fs.readFileSync(path, 'utf-8')).toBe(options.fileContent);
 
+  });
+
+  test('should return false if directory could not be created', () => {
+    const saveFile = new SaveFile();
+    const options = {
+      fileContent: 'test content'
+    }
+    const mkdirSpy = jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {
+      throw new Error('Error creating directory');
+    });
+    
+    const result = saveFile.execute(options);
+    
+    expect(result).toBeFalsy();
+    
+    mkdirSpy.mockRestore();
+  });
+
+  test('should return false if file could not be written', () => {
+    const saveFile = new SaveFile();
+    const options = {
+      fileContent: 'test content'
+    }
+    const writeFileSyncMock = jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {
+      throw new Error('Error writing file');
+    });
+
+    const result = saveFile.execute(options);
+
+    expect(result).toBeFalsy();
+
+    writeFileSyncMock.mockRestore();
   });
 
 });

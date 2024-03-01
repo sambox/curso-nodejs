@@ -197,4 +197,3 @@ dist
 outputs/
 *.log
 test-destination/
-.env

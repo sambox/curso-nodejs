@@ -2,6 +2,11 @@ import { ServerApp } from "./presentation/server-app";
 
 describe("ServerApp", () => {
   it("should run the server with the provided options", async () => {
+    
+    const serverRunMock = jest.fn();
+    ServerApp.run = serverRunMock;
+    process.argv = ['node', 'app', '-b', '5', '-l', '10', '-s', '-n', 'output', '-d', 'outputs'];
+
     const mockOptions = {
       base: 5,
       limit: 10,
@@ -10,12 +15,10 @@ describe("ServerApp", () => {
       destination: "outputs",
     };
 
-    // Mock any necessary dependencies or setup here
+    await import("./app");
 
-    // Call the run method of ServerApp with the mock options
-    await ServerApp.run(mockOptions);
+    expect(serverRunMock).toHaveBeenCalledTimes(1);
+    expect(serverRunMock).toHaveBeenCalledWith(mockOptions);
 
-    // Assert the expected behavior or outcome here
-    // For example, check if the server is running or if the output file is created
   });
 });
