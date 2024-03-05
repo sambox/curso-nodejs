@@ -197,3 +197,5 @@ dist
 outputs/
 *.log
 test-destination/
+/mongo/
+/postgres/
