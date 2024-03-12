@@ -199,3 +199,5 @@ outputs/
 test-destination/
 /mongo/
 /postgres/
+/mongo-test/
+/postgres-test/

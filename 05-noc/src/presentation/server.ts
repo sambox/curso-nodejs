@@ -42,6 +42,7 @@ export class Server {
     //   ).execute(url);
     //   // new CheckService().execute('http://localhost:3000/posts');
     // });
+    
     // const logs = await logRepository.getLogs(LogSeverityLevel.high);
     // console.log({logs});
 

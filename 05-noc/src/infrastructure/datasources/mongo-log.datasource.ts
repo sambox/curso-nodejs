@@ -12,7 +12,7 @@ export class MongoLogDatasource implements LogDatasource {
 
   async saveLog(log: any): Promise<void> {
     const newLog = await LogModel.create(log);
-    console.log('Mongo Log Created: ', newLog);
+    console.log('Mongo Log Created: ', newLog._id.toString());
     
   }
 
