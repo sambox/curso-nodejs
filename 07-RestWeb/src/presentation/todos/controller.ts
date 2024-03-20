@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { prisma } from "../../data/postgres";
+import { CreateTodoDto, UpdateTodoDto } from "../../domain/dto";
 
 const todos = [
   {
@@ -24,69 +26,74 @@ export class TodoController {
 
   }
 
-  public getTodos = (req: Request, res: Response) => {
-    return res.json(todos);
+  public getTodos = async (req: Request, res: Response) => {
+    return res.json(await prisma.todo.findMany());
   };
 
-  public getTodoById = (req: Request, res: Response) => {
-    const {id} = req.params;
-    if (this.validateId(id))  {
-      return res.status(400).json({error: 'id is required and must be a number'});
+  public getTodoById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    if (this.validateId(id)) {
+      return res.status(400).json({ error: 'id is required and must be a number' });
     }
-    const todo = todos.find(todo => todo.id === parseInt(id));
+    const todo = await prisma.todo.findFirst({ where: { id: parseInt(id) } });
     if (!todo) {
-      return res.status(404).json({error: `Todo with id ${id} not found`});
+      return res.status(404).json({ error: `Todo with id ${id} not found` });
     }
     return res.json(todo);
   };
 
-  public createTodo = (req: Request, res: Response) => {
-    const {text} = req.body;
-    if (!text) {
-      return res.status(400).json({error: 'text property is required'});
+  public createTodo = async (req: Request, res: Response) => {
+    const [error, createTodoDto] = CreateTodoDto.create(req.body);
+    if (error) {
+      return res.status(400).json({ error });
     }
-    const todo = {
-      id: todos.length + 1,
-      text,
-      completedAt: new Date()
-    }
-    todos.push(todo);
+    const todo = await prisma.todo.create({
+      data: createTodoDto!
+    })
+
     return res.send(todo);
   }
 
-  public updateTodo = (req: Request, res: Response) => {
-    const {text, completedAt} = req.body;
-    const {id} = req.params;
-
-    if (this.validateId(id))  {
-      return res.status(400).json({error: 'id is required and must be a number'});
-    }
+  public updateTodo = async (req: Request, res: Response) => {
+    const { id } = req.params;
     
-    const todo = todos.find(todo => todo.id === parseInt(id));
-    if (!todo) {
-      return res.status(404).json({error: `Todo with id ${id} not found`});
+    if (this.validateId(id)) {
+      return res.status(400).json({ error: 'id is required and must be a number' });
     }
 
-    todo.text = text || todo.text;
-    todo.completedAt = completedAt === 'null' ? null : new Date(completedAt || todo.completedAt);
+    const [error, updateTodo] = UpdateTodoDto.create({
+      ...req.body,
+      id: parseInt(id)
+    })
+    if (error) {
+      return res.status(400).json({ error });
+    }
 
-    return res.json(todo);
+    try {
+      const todo = await prisma.todo.update({
+        where: { id: parseInt(id) },
+        data: updateTodo!.values
+      });
+      return res.json(todo);
+    } catch (error) {
+      return res.status(404).json({ error: `Todo with id ${id} not found` });
+    }
   }
 
   private validateId = (id: string) => {
     return !id || isNaN(parseInt(id));
   }
 
-  public deleteTodo = (req: Request, res: Response) => {
-    const {id} = req.params;
-    if (this.validateId(id))  {
-      return res.status(400).json({error: 'id is required and must be a number'});
+  public deleteTodo = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    if (this.validateId(id)) {
+      return res.status(400).json({ error: 'id is required and must be a number' });
     }
-    const todo = todos.find(todo => todo.id === parseInt(id));
+    const todo = await prisma.todo.delete({ where: { id: parseInt(id) } });
     if (!todo) {
-      return res.status(404).json({error: `Todo with id ${id} not found`});
+      return res.status(404).json({ error: `Todo with id ${id} not found` });
     }
-    todos.splice(todos.indexOf(todo), 1);
+
     res.json(todo);
   }
 
